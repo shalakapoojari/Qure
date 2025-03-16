@@ -1,7 +1,7 @@
 class Config:
     MONGO_URI = "mongodb+srv://shalakapoojari677:shalakapoojari@qure.cgdz4.mongodb.net/db?retryWrites=true&w=majority"
     SECRET_KEY = "supersecurekey"
-    BASE_URL = "http://localhost:5000"
+    BASE_URL = "https://qure.onrender.com"
     
     # ✅ Correct Email Settings
     MAIL_SERVER = 'smtp.gmail.com'
