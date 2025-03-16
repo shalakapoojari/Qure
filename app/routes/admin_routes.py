@@ -12,7 +12,7 @@ from app.utils import send_token_accepted_email  # Assumed utility function
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
-@admin_bp.route('/')
+@admin_bp.route('/dashboard')
 def admin_dashboard():
     """Render Admin Dashboard with the latest queue ID."""
     last_queue = mongo.db.queues.find_one(sort=[('_id', -1)])
