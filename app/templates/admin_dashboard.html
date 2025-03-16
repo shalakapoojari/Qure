@@ -178,7 +178,7 @@
   <!-- Socket Events -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
   <script>
-    const socket = io("http://192.168.1.207:5000");
+    const socket = io("{{ current_app.config['BASE_URL'] }}");
     const myUserId = localStorage.getItem("user_id");
 
     socket.on('current_user_accepted', data => {

@@ -2,18 +2,17 @@ import base64
 import io
 import uuid
 from datetime import datetime
-
+import os
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
 import qrcode
 from pymongo.collection import ReturnDocument
-
 from app import mongo, socketio
 from app.utils import send_token_accepted_email  # Assumed utility function
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
-@admin_bp.route('/dashboard')
+@admin_bp.route('/')
 def admin_dashboard():
     """Render Admin Dashboard with the latest queue ID."""
     last_queue = mongo.db.queues.find_one(sort=[('_id', -1)])
@@ -34,7 +33,8 @@ def create_queue():
         'created_at': datetime.utcnow()
     })
 
-    base_url = current_app.config.get('BASE_URL', 'http://127.0.0.1:5000')
+    # Use BASE_URL from environment variables
+    base_url = os.getenv('BASE_URL', 'http://127.0.0.1:5000')
     join_url = f"{base_url}/user/join_queue/{queue_id}"
 
     # Generate QR Code
