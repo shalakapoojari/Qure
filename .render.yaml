@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: qure-admin-dashboard
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn wsgi:app
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000

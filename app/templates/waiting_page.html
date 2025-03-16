@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Waiting in Queue - Qure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg-color: #0f1115;
+      --card-color: #1c1e24;
+      --primary: #00c4ff;
+      --text: #e5e5e5;
+      --subtext: #aaaaaa;
+      --accent: #28a745;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-color);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      background: var(--card-color);
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 196, 255, 0.1);
+      max-width: 500px;
+      width: 90%;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: var(--primary);
+    }
+
+    p {
+      font-size: 16px;
+      color: var(--subtext);
+      margin-bottom: 20px;
+    }
+
+    .gif-container {
+      margin-bottom: 25px;
+    }
+
+    .gif-container img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .queue-info {
+      font-size: 18px;
+      margin-top: 15px;
+      color: var(--text);
+    }
+
+    .highlight {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    @media (max-width: 480px) {
+      h2 {
+        font-size: 22px;
+      }
+
+      p, .queue-info {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>🎫 You've been added to the queue!</h2>
+    <p>Please wait patiently while we process your request. You'll be notified when it's your turn.</p>
+
+    <div class="gif-container">
+      <!-- Replace this GIF URL with your own (hosted locally or externally) -->
+      <img src="{{ url_for('static', filename='images/waiting.gif') }}" alt="Waiting in Queue">
+    </div>
+
+    <div class="queue-info">
+      <p>Your queue token is active.</p>
+      <p>📍 <span class="highlight">{{ people_ahead }}</span> people ahead of you in the queue.</p>
+    </div>
+  </div>
+
+</body>
+</html>

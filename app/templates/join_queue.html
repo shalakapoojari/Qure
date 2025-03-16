@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ 'Queue Closed' if queue_closed else 'Join Queue' }} - Qure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg-color: #0e0e0e;
+      --card-color: #1e1e1e;
+      --primary-color: #00c4ff;
+      --input-bg: #2a2a2a;
+      --text-color: #f0f0f0;
+      --accent: #28a745;
+      --accent-hover: #218838;
+      --error-color: #ff4d4d;
+    }
+
+    body {
+      margin: 0;
+      padding: 30px 20px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background-color: var(--card-color);
+      padding: 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 0 15px rgba(0, 196, 255, 0.1);
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 26px;
+      margin-bottom: 20px;
+      color: var(--primary-color);
+    }
+
+    p {
+      font-size: 16px;
+      color: #ccc;
+    }
+
+    input {
+      background: var(--input-bg);
+      border: none;
+      color: var(--text-color);
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      width: 100%;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+
+    input::placeholder {
+      color: #aaa;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: #fff;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .closed-message h2 {
+      color: var(--error-color);
+    }
+
+    .closed-message p {
+      color: #bbb;
+    }
+
+    .success-gif {
+      margin-top: 20px;
+    }
+
+    .success-gif img {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    {% if queue_closed %}
+      <div class="closed-message">
+        <h2>Queue is closed now, sorry! 😔</h2>
+        <p>Please try again later or contact the administrator.</p>
+      </div>
+    {% else %}
+      <form method="POST">
+        <h2>Join the Queue</h2>
+        <input type="text" name="name" id="name" placeholder="Your Name" required />
+        <input type="email" name="email" id="email" placeholder="Your Email" required />
+        <button type="submit">Join Queue</button>
+      </form>
+
+      <div class="success-gif">
+        <p>🎉 Welcome to the queue cutu!</p>
+        <img src="{{ url_for('static', filename='images/kirby.gif') }}" alt="Queue Success GIF">
+      </div>
+    {% endif %}
+  </div>
+
+  {% if not queue_closed %}
+  <script>
+    // Detect mobile device
+    const isMobile = /iPhone|Android|webOS|iPad|iPod/i.test(navigator.userAgent);
+
+    // Prevent reload via performance API
+    if (performance.navigation.type === performance.navigation.TYPE_RELOAD) {
+      alert("Reload is not allowed during your queue session.");
+      window.location.href = "/user/not_allowed";
+    }
+
+    // Extra safeguard for mobile users
+    window.onload = function () {
+      if (isMobile && performance.navigation.type === 1) {
+        document.getElementById('name').value = '';
+        document.getElementById('email').value = '';
+        alert("Please re-enter your email to join the queue.");
+      }
+    };
+
+    // Block F5 / Ctrl+R
+    document.addEventListener("keydown", function (e) {
+      if ((e.key === "F5") || (e.ctrlKey && e.key === "r")) {
+        e.preventDefault();
+        alert("Reloading is disabled on this page.");
+      }
+    });
+
+    // Prevent accidental closing/tab reload
+    window.addEventListener("beforeunload", function (e) {
+      e.preventDefault();
+      e.returnValue = '';
+    });
+  </script>
+  {% endif %}
+
+</body>
+</html>
