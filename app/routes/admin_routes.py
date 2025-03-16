@@ -7,7 +7,8 @@ from flask import Blueprint, current_app, flash, jsonify, redirect, render_templ
 import qrcode
 from pymongo.collection import ReturnDocument
 from app import mongo, socketio
-from app.utils import send_token_accepted_email  # Assumed utility function
+from app.utils import send_token_accepted_email
+from flask import current_app  # Assumed utility function
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
