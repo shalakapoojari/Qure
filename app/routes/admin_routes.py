@@ -35,7 +35,7 @@ def create_queue():
     })
 
     # Use BASE_URL from environment variables
-    base_url = os.getenv('BASE_URL', 'http://127.0.0.1:5000')
+    base_url = os.getenv('BASE_URL', 'https://qure.onrender.com')
     join_url = f"{base_url}/user/join_queue/{queue_id}"
 
     # Generate QR Code
