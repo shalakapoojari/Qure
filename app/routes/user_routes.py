@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
-from app.extensions import mongo, socketio
+from app.extensions import socketio
+from app import mongo
 import uuid
 from datetime import datetime
 import os
