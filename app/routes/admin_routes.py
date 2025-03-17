@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
 import qrcode
-from app.extensions import socketio
+from app import socketio
 from app import mongo
 from app.utils import send_token_accepted_email
 
