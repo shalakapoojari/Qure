@@ -1,217 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Qure</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --bg-color: #1e1e2f;
-      --primary-color: #00c4ff;
-      --text-color: #f0f0f0;
-      --secondary-text: #aaa;
-      --button-bg: #29293d;
-      --button-hover: #00c4ff;
-      --accent-color: #333348;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-    }
-
-    .container {
-      max-width: 600px;
-      margin: auto;
-      padding: 30px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    h2 {
-      text-align: center;
-      font-size: 26px;
-      margin-bottom: 10px;
-      color: var(--primary-color);
-    }
-
-    button, a {
-      background-color: var(--button-bg);
-      color: var(--text-color);
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      text-align: center;
-      cursor: pointer;
-      text-decoration: none;
-      transition: 0.3s;
-      width: 100%;
-    }
-
-    button:hover, a:hover {
-      background-color: var(--button-hover);
-      color: #000;
-    }
-
-    .qr-section {
-      background-color: var(--accent-color);
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-      display: none;
-    }
-
-    .qr-section img {
-      width: 100%;
-      max-width: 280px;
-      margin: 15px 0;
-    }
-
-    .label {
-      font-size: 14px;
-      color: var(--secondary-text);
-    }
-
-    /* Flash message styles */
-    .alert {
-      padding: 12px 18px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      font-size: 15px;
-      font-weight: 500;
-      text-align: center;
-      animation: fade-in 0.4s ease-in;
-    }
-
-    .alert-success {
-      background-color: #28a745;
-      color: #fff;
-    }
-
-    .alert-danger {
-      background-color: #dc3545;
-      color: #fff;
-    }
-
-    .alert-warning {
-      background-color: #ffc107;
-      color: #000;
-    }
-
-    .alert-info {
-      background-color: #17a2b8;
-      color: #fff;
-    }
-
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(-10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 500px) {
-      h2 {
-        font-size: 22px;
-      }
-
-      button, a {
-        font-size: 15px;
-        padding: 10px 16px;
-      }
-
-      .qr-section img {
-        max-width: 200px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
-
-  <div class="container">
-    <h2>Admin Dashboard</h2>
-
-    <!-- ✅ Flash Messages Display -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div id="flash-container">
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-
-    <button onclick="createQueue()">Create New Queue</button>
-
-    <div id="qr-section" class="qr-section">
-      <h3>📲 Scan this QR Code to Join Queue</h3>
-      <img id="qr-image" src="" alt="Queue QR Code" />
-      <p class="label"><strong>Queue ID:</strong> <span id="queue-id-text"></span></p>
-      <a id="download-qr" href="" download="queue_qr.png">
-        <button>Download QR Code</button>
-      </a>
+  <div class="admin-container">
+    <div class="admin-sidebar">
+      <div class="admin-logo">
+        <i class="fas fa-ticket-alt"></i>
+        <h2>Qure</h2>
+      </div>
+      
+      <nav class="admin-nav">
+        <a href="#dashboard" class="active">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#queues">
+          <i class="fas fa-list-ol"></i>
+          <span>Queues</span>
+        </a>
+        <a href="#settings">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
     </div>
-
-    <form action="/admin/accept_user/{{ queue_id }}" method="POST">
-      <button type="submit">✅ Accept Next User</button>
-    </form>
-
-    <a href="/admin/queue_status/{{ queue_id }}">📊 View Queue Status</a>
-
-    <form action="/admin/close_queue/{{ queue_id }}" method="POST" style="margin-top: 10px;">
-      <button type="submit" style="background-color: #ff4d4d; color: white;">Close Queue</button>
-    </form>
-
-    <form action="/admin/reopen_queue/{{ queue_id }}" method="POST" style="margin-top: 10px;">
-      <button type="submit" style="background-color: #28a745; color: white;">Reopen Queue</button>
-    </form>
+    
+    <div class="admin-content">
+      <div class="admin-header">
+        <h1>Queue Management Dashboard</h1>
+        
+        <div class="admin-actions">
+          <button id="create-queue-btn" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Queue
+          </button>
+        </div>
+      </div>
+      
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                <i class="fas fa-info-circle"></i> {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      
+      <div class="admin-panels">
+        <div class="panel queue-status-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-users"></i> Current Queue</h3>
+            <div class="queue-id">Queue ID: <span id="current-queue-id">{{ queue_id }}</span></div>
+          </div>
+          
+          <div class="panel-body">
+            <div class="queue-stats">
+              <div class="stat-item">
+                <div class="stat-value" id="total-users">0</div>
+                <div class="stat-label">Total Users</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="avg-wait-time">0 min</div>
+                <div class="stat-label">Avg. Wait Time</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value" id="queue-status">Active</div>
+                <div class="stat-label">Status</div>
+              </div>
+            </div>
+            
+            <div class="queue-actions">
+              <form action="/admin/accept_user/{{ queue_id }}" method="POST" id="accept-user-form">
+                <button type="submit" class="btn btn-success">
+                  <i class="fas fa-user-check"></i> Accept Next User
+                </button>
+              </form>
+              
+              <div class="queue-toggle">
+                <form action="/admin/close_queue/{{ queue_id }}" method="POST" id="close-queue-form" style="display: inline-block;">
+                  <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-lock"></i> Close Queue
+                  </button>
+                </form>
+                
+                <form action="/admin/reopen_queue/{{ queue_id }}" method="POST" id="reopen-queue-form" style="display: inline-block;">
+                  <button type="submit" class="btn btn-success">
+                    <i class="fas fa-lock-open"></i> Reopen Queue
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel users-panel">
+          <div class="panel-header">
+            <h3><i class="fas fa-list"></i> Users in Queue</h3>
+            <div class="panel-actions">
+              <button id="refresh-queue" class="btn btn-sm">
+                <i class="fas fa-sync-alt"></i> Refresh
+              </button>
+            </div>
+          </div>
+          
+          <div class="panel-body">
+            <div class="user-list" id="user-list">
+              <div class="empty-state" id="empty-queue-message">
+                <i class="fas fa-users-slash"></i>
+                <p>Queue is empty</p>
+              </div>
+              <!-- User list will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="qr-panel" id="qr-panel" style="display: none;">
+        <div class="panel-header">
+          <h3><i class="fas fa-qrcode"></i> Queue QR Code</h3>
+          <button class="close-btn" id="close-qr-panel">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="panel-body">
+          <div class="qr-container">
+            <img id="qr-image" src="/placeholder.svg" alt="Queue QR Code">
+            <p>Scan this QR code to join the queue</p>
+            <div class="qr-actions">
+              <a id="download-qr" href="" download="queue_qr.png" class="btn btn-primary">
+                <i class="fas fa-download"></i> Download QR Code
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <!-- Socket Events -->
-  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  
+  <div class="notification-container" id="admin-notifications">
+    <!-- Notifications will appear here -->
+  </div>
+  
   <script>
-    const socket = io("{{ config['BASE_URL'] }}");
-    const myUserId = localStorage.getItem("user_id");
-
-    socket.on('current_user_accepted', data => {
-      if (myUserId === data.user_id) {
-        alert(data.message);
-      }
+    // Connect to Socket.IO
+    const socket = io();
+    const userId = "{{ user_id_from_server }}";
+    
+    // DOM Elements
+    const userList = document.getElementById('user-list');
+    const emptyQueueMessage = document.getElementById('empty-queue-message');
+    const totalUsersElement = document.getElementById('total-users');
+    const queueStatusElement = document.getElementById('queue-status');
+    const avgWaitTimeElement = document.getElementById('avg-wait-time');
+    const createQueueBtn = document.getElementById('create-queue-btn');
+    const qrPanel = document.getElementById('qr-panel');
+    const closeQrPanelBtn = document.getElementById('close-qr-panel');
+    const qrImage = document.getElementById('qr-image');
+    const downloadQr = document.getElementById('download-qr');
+    const currentQueueId = document.getElementById('current-queue-id');
+    const refreshQueueBtn = document.getElementById('refresh-queue');
+    
+    // Listen for queue updates
+    socket.on('queue_update', function(data) {
+      updateQueueDisplay(data);
     });
-
-    socket.on('you_are_next', data => {
-      if (myUserId === data.user_id) {
-        alert(data.message);
-      }
+    
+    // Listen for empty queue notification
+    socket.on('queue_empty', function() {
+      showAdminNotification("Queue is now empty!", "warning");
     });
-
-    function createQueue() {
+    
+    // Create new queue
+    createQueueBtn.addEventListener('click', function() {
       fetch('/admin/create_queue', {
         method: 'POST'
       })
       .then(res => res.json())
       .then(data => {
-        document.getElementById("qr-image").src = `data:image/png;base64,${data.qr_code}`;
-        document.getElementById("download-qr").href = `data:image/png;base64,${data.qr_code}`;
-        document.getElementById("queue-id-text").innerText = data.queue_id;
-        document.getElementById("qr-section").style.display = 'block';
+        currentQueueId.textContent = data.queue_id;
+        qrImage.src = data.qr_code_url;
+        downloadQr.href = data.qr_code_url;
+        qrPanel.style.display = 'block';
+        showAdminNotification("New queue created successfully!", "success");
+        
+        // Update forms with new queue ID
+        document.querySelectorAll('form').forEach(form => {
+          const action = form.action;
+          const newAction = action.replace(/\/[^\/]*$/, `/${data.queue_id}`);
+          form.action = newAction;
+        });
       })
-      .catch(err => console.error('Error creating queue:', err));
+      .catch(err => {
+        console.error('Error creating queue:', err);
+        showAdminNotification("Failed to create queue. Please try again.", "error");
+      });
+    });
+    
+    // Close QR panel
+    closeQrPanelBtn.addEventListener('click', function() {
+      qrPanel.style.display = 'none';
+    });
+    
+    // Refresh queue data
+    refreshQueueBtn.addEventListener('click', function() {
+      const queueId = currentQueueId.textContent;
+      if (queueId) {
+        fetchQueueStatus(queueId);
+      } else {
+        showAdminNotification("No active queue to refresh.", "info");
+      }
+    });
+    
+    // Fetch queue status
+    function fetchQueueStatus(queueId) {
+      fetch(`/admin/queue_status/${queueId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            updateQueueDisplay(data);
+          } else {
+            showAdminNotification(data.message, "error");
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching queue status:', err);
+          showAdminNotification("Failed to fetch queue status.", "error");
+        });
     }
-
-    // ✅ Auto-hide flash messages after 4 seconds
-    setTimeout(() => {
-      const flashContainer = document.getElementById('flash-container');
-      if (flashContainer) flashContainer.style.display = 'none';
-    }, 4000);
+    
+    // Update queue display
+    function updateQueueDisplay(data) {
+      totalUsersElement.textContent = data.total_users;
+      
+      // Update average wait time (3 minutes per person assumption)
+      const avgWaitTime = data.total_users * 3;
+      avgWaitTimeElement.textContent = `${avgWaitTime} min`;
+      
+      // Update user list
+      userList.innerHTML = '';
+      
+      if (data.total_users === 0) {
+        emptyQueueMessage.style.display = 'flex';
+        showAdminNotification("Queue is empty!", "warning");
+      } else {
+        emptyQueueMessage.style.display = 'none';
+        
+        data.users.forEach(user => {
+          const userItem = document.createElement('div');
+          userItem.className = 'user-item';
+          userItem.innerHTML = `
+            <div class="user-position">${user.position}</div>
+            <div class="user-info">
+              <div class="user-name">${user.name}</div>
+              <div class="user-email">${user.email}</div>
+            </div>
+            <div class="user-waiting-time">~${user.position * 3} min</div>
+          `;
+          userList.appendChild(userItem);
+        });
+      }
+    }
+    
+    // Show admin notification
+    function showAdminNotification(message, type) {
+      const notificationContainer = document.getElementById('admin-notifications');
+      const notification = document.createElement('div');
+      notification.className = `admin-notification ${type}`;
+      notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+        <p>${message}</p>
+      `;
+      notificationContainer.appendChild(notification);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => {
+          notification.remove();
+        }, 500);
+      }, 5000);
+    }
+    
+    // Initialize by fetching current queue status if queue ID exists
+    document.addEventListener('DOMContentLoaded', function() {
+      const queueId = currentQueueId.textContent.trim();
+      if (queueId) {
+        fetchQueueStatus(queueId);
+      }
+    });
   </script>
 </body>
 </html>

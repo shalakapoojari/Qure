@@ -4,98 +4,144 @@
   <meta charset="UTF-8">
   <title>Waiting in Queue - Qure</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --bg-color: #0f1115;
-      --card-color: #1c1e24;
-      --primary: #00c4ff;
-      --text: #e5e5e5;
-      --subtext: #aaaaaa;
-      --accent: #28a745;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg-color);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    .container {
-      text-align: center;
-      background: var(--card-color);
-      padding: 40px 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 196, 255, 0.1);
-      max-width: 500px;
-      width: 90%;
-    }
-
-    h2 {
-      font-size: 28px;
-      margin-bottom: 20px;
-      color: var(--primary);
-    }
-
-    p {
-      font-size: 16px;
-      color: var(--subtext);
-      margin-bottom: 20px;
-    }
-
-    .gif-container {
-      margin-bottom: 25px;
-    }
-
-    .gif-container img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-
-    .queue-info {
-      font-size: 18px;
-      margin-top: 15px;
-      color: var(--text);
-    }
-
-    .highlight {
-      color: var(--accent);
-      font-weight: bold;
-    }
-
-    @media (max-width: 480px) {
-      h2 {
-        font-size: 22px;
-      }
-
-      p, .queue-info {
-        font-size: 15px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
-
   <div class="container">
-    <h2>🎫 You've been added to the queue!</h2>
-    <p>Please wait patiently while we process your request. You'll be notified when it's your turn.</p>
-
-    <div class="gif-container">
-      <!-- Replace this GIF URL with your own (hosted locally or externally) -->
-      <img src="{{ url_for('static', filename='images/waiting.gif') }}" alt="Waiting in Queue">
-    </div>
-
-    <div class="queue-info">
-      <p>Your queue token is active.</p>
-      <p>📍 <span class="highlight">{{ people_ahead }}</span> people ahead of you in the queue.</p>
+    <div class="card waiting-card">
+      <div class="waiting-header">
+        <i class="fas fa-hourglass-half pulse"></i>
+        <h2>You're in the Queue!</h2>
+        <p>Please wait patiently. We'll notify you when it's your turn.</p>
+      </div>
+      
+      <div class="queue-status">
+        <div class="status-item">
+          <div class="status-icon">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="status-text">
+            <h3>Your Status</h3>
+            <p>Your queue token is active</p>
+          </div>
+        </div>
+        
+        <div class="status-item">
+          <div class="status-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="status-text">
+            <h3>Position</h3>
+            <p><span id="position-number">{{ position }}</span> people ahead of you</p>
+          </div>
+        </div>
+        
+        <div class="status-item">
+          <div class="status-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="status-text">
+            <h3>Estimated Wait</h3>
+            <p id="estimated-time">Calculating...</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="waiting-animation">
+        <div class="progress-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+      
+      <div class="notification-area" id="notification-area">
+        <!-- Notifications will appear here -->
+      </div>
     </div>
   </div>
-
+  
+  <script>
+    // Store user info
+    const userName = "{{ name }}";
+    const userPosition = "{{ position }}";
+    localStorage.setItem("user_id", "{{ user_id }}");
+    
+    // Connect to Socket.IO
+    const socket = io();
+    
+    // Listen for position updates
+    socket.on('position_update', function(data) {
+      if (data.user_id === localStorage.getItem("user_id")) {
+        document.getElementById('position-number').textContent = data.position;
+        updateEstimatedTime(data.position);
+      }
+    });
+    
+    // Listen for token acceptance
+    socket.on('token_accepted', function(data) {
+      if (data.user_id === localStorage.getItem("user_id")) {
+        showNotification("Your turn has arrived! Please proceed to the counter.", "success");
+        document.querySelector('.waiting-card').classList.add('accepted');
+      }
+    });
+    
+    // Listen for next in line notification
+    socket.on('you_are_next', function(data) {
+      if (data.user_id === localStorage.getItem("user_id")) {
+        showNotification("You're next! Please get ready.", "info");
+      }
+    });
+    
+    // Update estimated time based on position
+    function updateEstimatedTime(position) {
+      const avgTimePerPerson = 3; // minutes
+      const estimatedMinutes = position * avgTimePerPerson;
+      let timeText = "";
+      
+      if (estimatedMinutes < 1) {
+        timeText = "Less than a minute";
+      } else if (estimatedMinutes === 1) {
+        timeText = "About 1 minute";
+      } else if (estimatedMinutes < 60) {
+        timeText = `About ${estimatedMinutes} minutes`;
+      } else {
+        const hours = Math.floor(estimatedMinutes / 60);
+        const mins = estimatedMinutes % 60;
+        timeText = `About ${hours} hour${hours > 1 ? 's' : ''} ${mins > 0 ? `and ${mins} minute${mins > 1 ? 's' : ''}` : ''}`;
+      }
+      
+      document.getElementById('estimated-time').textContent = timeText;
+      
+      // Update progress bar
+      const progressBar = document.getElementById('progress-bar');
+      const maxWaitTime = 20; // Assume 20 people is max queue length
+      const progressPercent = 100 - Math.min(100, (position / maxWaitTime) * 100);
+      progressBar.style.width = `${progressPercent}%`;
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+      const notificationArea = document.getElementById('notification-area');
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+        <p>${message}</p>
+      `;
+      notificationArea.appendChild(notification);
+      
+      // Auto remove after 10 seconds
+      setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => {
+          notification.remove();
+        }, 500);
+      }, 10000);
+    }
+    
+    // Initialize estimated time
+    updateEstimatedTime(userPosition);
+  </script>
 </body>
 </html>
