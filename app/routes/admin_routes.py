@@ -15,11 +15,11 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.route('/dashboard')
 def admin_dashboard():
-    """Render Admin Dashboard with the latest queue ID."""
-    last_queue = mongo.db.queues.find_one(sort=[('_id', -1)])
-    queue_id = last_queue["queue_id"] if last_queue else ""
+    """Render Admin Dashboard with all queues."""
+    queues = mongo.db.queues.find().sort([('_id', -1)])  # Get all queues, sorted by the most recent
     user_id_from_server = "admin_user"  # Should ideally come from session
-    return render_template("admin_dashboard.html", queue_id=queue_id, user_id_from_server=user_id_from_server)
+    return render_template("admin_dashboard.html", queues=queues, user_id_from_server=user_id_from_server)
+
 
 
 @admin_bp.route('/create_queue', methods=['POST'])
@@ -35,7 +35,7 @@ def create_queue():
     })
 
     # Use BASE_URL from environment variables
-    base_url = os.getenv('BASE_URL', 'https://qure.onrender.com/')
+    base_url = 'https://qure.onrender.com/'
     join_url = f"{base_url}/user/join_queue/{queue_id}"
 
     # Generate QR Code
